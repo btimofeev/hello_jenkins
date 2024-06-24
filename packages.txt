@@ -1,0 +1,8 @@
+build-tools;34.0.0
+extras;android;m2repository
+extras;google;m2repository
+extras;google;google_play_services
+platform-tools
+platforms;android-34
+extras;google;m2repository
+
