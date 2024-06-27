@@ -1,4 +1,4 @@
-FROM btimofeev/otus-base-image:0.1.0
+FROM btimofeev/otus-base-image:0.2.0
 
 ENV VERSION_SDK_TOOLS "8512546_latest"
 ENV VERSION_GRADLE_PROFILER "0.20.0"
