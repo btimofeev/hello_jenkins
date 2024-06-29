@@ -1,0 +1,98 @@
+pipeline {
+    agent {
+        docker { image 'btimofeev/hello-jenkins-builder:1.1.0' }
+    }
+
+    parameters {
+        string(name: "BRANCH", defaultValue: "development", trim: true, description: "Введите название ветки")
+    }
+
+    stages {
+        stage('Clone') {
+            steps {
+                checkout scmGit(
+                    branches: [[name: params.BRANCH]],
+                    extensions: [],
+                    userRemoteConfigs: [[url: 'https://github.com/btimofeev/hello_jenkins.git']]
+                )
+            }
+        }
+
+        stage('Detekt') {
+            steps {
+                sh './gradlew detekt'
+            }
+            post {
+                failure {
+                    archiveArtifacts artifacts: 'app/build/reports/detekt/*', allowEmptyArchive: true
+                }
+            }
+        }
+
+        stage('Build feature branch') {
+            when {
+                expression {
+                    !params.BRANCH.startsWith("release/")
+                }
+            }
+            steps {
+                sh './gradlew assembleDebug'
+            }
+        }
+
+        stage('Test feature branch') {
+            when {
+                expression {
+                    !params.BRANCH.startsWith("release/")
+                }
+            }
+            steps {
+                sh './gradlew testDebugUnitTest'
+            }
+            post {
+                success {
+                    archiveArtifacts artifacts: 'app/build/outputs/apk/debug/*.apk'
+                }
+                failure {
+                    archiveArtifacts artifacts: 'app/build/test-results/testDebugUnitTest/*.xml', allowEmptyArchive: true
+                }
+            }
+        }
+
+        stage('Build release branch') {
+            when {
+                expression {
+                    params.BRANCH.startsWith("release/")
+                }
+            }
+            steps {
+                withCredentials([file(credentialsId: 'otus_keystore', variable: 'otus_keystore_file'), file(credentialsId: 'otus_keystore_credentials', variable: 'otus_keystore_credentials_file')]) {
+                    sh 'cp -f ${otus_keystore_file} mykeystore.jks'
+                    sh 'cp -f ${otus_keystore_credentials_file} keystore.properties'
+                }
+                sh './gradlew assembleRelease'
+            }
+            post {
+                success {
+                    archiveArtifacts artifacts: 'app/build/outputs/apk/release/*.apk'
+                }
+            }
+        }
+
+        stage('Test release branch') {
+            when {
+                expression {
+                    params.BRANCH.startsWith("release/")
+                }
+            }
+            steps {
+                sh './gradlew testReleaseUnitTest'
+            }
+            post {
+                failure {
+                    archiveArtifacts artifacts: 'app/build/test-results/testReleaseUnitTest/*.xml', allowEmptyArchive: true
+                }
+            }
+        }
+    }
+}
