@@ -1,0 +1,38 @@
+pipeline {
+    agent {
+        docker { image 'btimofeev/hello-jenkins-builder:1.1.0' }
+    }
+
+    triggers {
+        cron '''TZ=Europe/Moscow
+0 22 * * *'''
+    }
+
+
+    parameters {
+        string(name: "BRANCH", defaultValue: "development", trim: true, description: "Введите название ветки")
+    }
+
+    stages {
+        stage('Clone') {
+            steps {
+                checkout scmGit(
+                    branches: [[name: params.BRANCH]],
+                    extensions: [],
+                    userRemoteConfigs: [[url: 'https://github.com/btimofeev/hello_jenkins.git']]
+                )
+            }
+        }
+
+        stage('Profile') {
+            steps {
+                sh 'gradle-profiler --benchmark --project-dir . assembleDebug'
+            }
+            post {
+                success {
+                    archiveArtifacts artifacts: 'profile-out/**', allowEmptyArchive: true
+                }
+            }
+        }
+    }
+}
