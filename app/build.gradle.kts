@@ -1,3 +1,4 @@
+import com.github.triplet.gradle.androidpublisher.ReleaseStatus
 import java.io.FileInputStream
 import java.util.Properties
 
@@ -5,6 +6,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.detekt)
+    alias(libs.plugins.gradle.play.publisher)
 }
 
 val keystorePropertiesFile = rootProject.file("keystore.properties")
@@ -69,6 +71,13 @@ android {
         source.setFrom("src")
         config.setFrom("detekt.yml")
     }
+}
+
+play {
+    defaultToAppBundles.set(true)
+    track.set("production")
+    userFraction.set(0.2)
+    releaseStatus.set(ReleaseStatus.DRAFT)
 }
 
 dependencies {

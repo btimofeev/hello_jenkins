@@ -1,0 +1,9 @@
+build-tools;34.0.0
+extras;android;m2repository
+extras;google;m2repository
+extras;google;google_play_services
+platform-tools
+platforms;android-34
+extras;google;m2repository
+extras;m2repository;com;android;support;constraint;constraint-layout;2.0.4
+extras;m2repository;com;android;support;constraint;constraint-layout-solver;2.0.4
